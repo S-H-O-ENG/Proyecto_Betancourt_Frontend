@@ -42,67 +42,43 @@ function App() {
       setMensaje("Correo y contraseña obligatorios");
       return;
     }
+
     try {
-      //await = para que la pagina espere el resultado de la consulta
-      //axios.get... = se comunica con axios que es el puente  entre el back y front y busca los campos del correo
-      const consulta = await axios.get(`${API_URL}?email=${email}`);
+      const respuesta = await axios.post('http://localhost:8080/api/auth/login', {
+        correo: email,
+        pass: password
+      });
 
-      //consulta.data.length === 0 = en el db.json los campos son arreglos, entonces un arreglo vacio o uno donde no
-      //coincide el usuario es 0 - por eso el .leght, consulta la cantidad de catacteres y si no existe manda el msj
-      if (consulta.data.length === 0) {
-        setMensaje("El correo no está registrado");
-        return;
-      }
+      const datos = respuesta.data;
 
-      //esta linea crea la variable usuario y le asigna el resultado que da el db.json, entonces pq 0 
-      //pq como json devuleve la consulta en un arreglo el primer arreglo siempre es 0, y como arriba estamos
-      //haciendo una consulta con axios donde estamos diciendo que el email sea = al email que se ingreso
-      //si existe la respuesta del json es un arreglo donde ese email es el numero 0 osea el primero y ahi se asigna
-      const usuario = consulta.data[0];
-
-      //variable que hace la comparacion de la clave ingresada y la que esta en la bd
-      //bycript.comparesync hace todo el calculo para saber para saber si la contra es o no
-      //password es la pass que el usuario  ingresa - usuario.pass.. es la pass de la bd
-      //bycrypt = encripta la contra que el usuario pone 
-      const correcta = bcrypt.compareSync(password, usuario.password);
-
-      if (!correcta) {
-        setMensaje("Contraseña incorrecta");
-        return;
-      }
-
-
-      Swal.fire(`¡Bienvenido/a ${usuario.name}!`);
+      Swal.fire(`¡Bienvenido/a ${datos.nombre}!`);
 
       document.body.classList.remove('modal-open');
       document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
       document.body.style.overflow = 'unset';
       document.body.style.paddingRight = '';
 
-      // Guardamos la sesión en el almacenamiento local del navegador
-      localStorage.setItem("userRole", usuario.role);
+      localStorage.setItem("token", datos.token);
+      localStorage.setItem("userRole", datos.role || "admin");
 
-      //redireccionamiento a paginas
-      //si el rol del usuario es igual a admin entonces la variable set vista asignele paneljefe que es igual a la pagina
-      //pq arriba se importo
-      if (usuario.role === "admin") {
-        setVistaActual("router")
-      } else if (usuario.role === "administrativo") {
-        setVistaActual("Inventario")
-      } else if (usuario.role === "auxdatos") {
-        setVistaActual("Clientes")
-      } else if (usuario.role === "Asignador") {
-        setVistaActual("AsignarServicios");
+      if (datos.role === "administrativo") {
+        setVistaActual("Inventario");
+      } else if (datos.role === "auxdatos") {
+        setVistaActual("Clientes");
       } else {
-        setMensaje("El usuario no está registrado")
+        setVistaActual("router");
       }
 
-
     } catch (error) {
-      setMensaje("Error al iniciar sesión");
+      if (error.response && error.response.status === 401) {
+        setMensaje("Correo o contraseña incorrectos");
+      } else {
+        setMensaje("Error al conectar con el servidor");
+      }
       console.error(error);
     }
-  };
+  }
+
 
   // Función para cerrar sesión y borrar el almacenamiento local
   const cerrarSesion = () => {
