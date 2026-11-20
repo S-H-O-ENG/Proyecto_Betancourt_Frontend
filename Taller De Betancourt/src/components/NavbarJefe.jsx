@@ -37,8 +37,9 @@ function NavbarJefe() {
 
                         <li className="nav-item ms-2">
                             <button className="btn btn-login-nav" onClick={() => {
-                                localStorage.removeItem("userRole"); // 1. Borra la sesión guardada
-                                window.location.href = "/";          // 2. Te manda de regreso al inicio/login
+                                localStorage.removeItem("token");    // 1. Borra el token JWT
+                                localStorage.removeItem("userRole"); // 2. Borra la sesión guardada
+                                window.location.href = "/";          // 3. Te manda de regreso al inicio/login
                             }}>
                                 Cerrar Sesión
                             </button>
