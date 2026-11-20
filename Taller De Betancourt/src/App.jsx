@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import axios from 'axios';
-import bcrypt from 'bcryptjs';
 import Swal from 'sweetalert2';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -18,106 +17,101 @@ import logo from './assets/logo.png';
 import supra from './assets/supra.png';
 import './App.css';
 
-
 function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
 
   // Leemos si ya había una sesión iniciada guardada en el navegador al recargar 
-  const [vistaActual, setVistaActual] = useState(() => {
-    const rolGuardado = localStorage.getItem("userRole");
-    if (rolGuardado === "admin") return "router";
-    if (rolGuardado === "administrativo") return "Inventario";
+const [vistaActual, setVistaActual] = useState(() => {
+    const rolGuardado = localStorage.getItem("userRole")?.toLowerCase();
+    if (rolGuardado === "super_admin" || rolGuardado === "admin" || rolGuardado === "jefe") return "router";
+    if (rolGuardado === "administrativo" || rolGuardado === "inventario") return "Inventario";
     if (rolGuardado === "auxdatos") return "Clientes";
+    if (rolGuardado === "asignador") return "AsignarServicios";
     return "login";
   });
 
-  const API_URL = 'http://localhost:3000/users';
+  const API_URL = 'http://localhost:8080/api/v1/auth';
 
   async function login(e) {
     e.preventDefault();
+    setMensaje("");
 
     if (!email || !password) {
       setMensaje("Correo y contraseña obligatorios");
       return;
     }
+
     try {
-      //await = para que la pagina espere el resultado de la consulta
-      //axios.get... = se comunica con axios que es el puente  entre el back y front y busca los campos del correo
-      const consulta = await axios.get(`${API_URL}?email=${email}`);
+      // 1. Petición POST al endpoint de login en Spring Boot (envía { correo, password })
+      const resLogin = await axios.post(`${API_URL}/login`, {
+        correo: email,
+        password: password
+      });
 
-      //consulta.data.length === 0 = en el db.json los campos son arreglos, entonces un arreglo vacio o uno donde no
-      //coincide el usuario es 0 - por eso el .leght, consulta la cantidad de catacteres y si no existe manda el msj
-      if (consulta.data.length === 0) {
-        setMensaje("El correo no está registrado");
-        return;
-      }
+      const { accessToken } = resLogin.data;
 
-      //esta linea crea la variable usuario y le asigna el resultado que da el db.json, entonces pq 0 
-      //pq como json devuleve la consulta en un arreglo el primer arreglo siempre es 0, y como arriba estamos
-      //haciendo una consulta con axios donde estamos diciendo que el email sea = al email que se ingreso
-      //si existe la respuesta del json es un arreglo donde ese email es el numero 0 osea el primero y ahi se asigna
-      const usuario = consulta.data[0];
+      // Guardamos el token JWT en el navegador
+      localStorage.setItem("token", accessToken);
 
-      //variable que hace la comparacion de la clave ingresada y la que esta en la bd
-      //bycript.comparesync hace todo el calculo para saber para saber si la contra es o no
-      //password es la pass que el usuario  ingresa - usuario.pass.. es la pass de la bd
-      //bycrypt = encripta la contra que el usuario pone 
-      const correcta = bcrypt.compareSync(password, usuario.password);
+      // 2. Petición GET al endpoint /me enviando el token Bearer para traer los datos y el rol
+      const resPerfil = await axios.get(`${API_URL}/me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
 
-      if (!correcta) {
-        setMensaje("Contraseña incorrecta");
-        return;
-      }
+      const usuario = resPerfil.data; // { idUsuario, nombre, apellido, correo, rol }
+      const rolNormalizado = usuario.rol.toLowerCase();
 
+      Swal.fire(`¡Bienvenido/a ${usuario.nombre} ${usuario.apellido}!`);
 
-      Swal.fire(`¡Bienvenido/a ${usuario.name}!`);
-
+      // Limpiamos el modal de Bootstrap
       document.body.classList.remove('modal-open');
       document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
       document.body.style.overflow = 'unset';
       document.body.style.paddingRight = '';
 
-      // Guardamos la sesión en el almacenamiento local del navegador
-      localStorage.setItem("userRole", usuario.role);
+      // Guardamos el rol en el almacenamiento local
+      localStorage.setItem("userRole", rolNormalizado);
 
-      //redireccionamiento a paginas
-      //si el rol del usuario es igual a admin entonces la variable set vista asignele paneljefe que es igual a la pagina
-      //pq arriba se importo
-      if (usuario.role === "admin") {
-        setVistaActual("router")
-      } else if (usuario.role === "administrativo") {
-        setVistaActual("Inventario")
-      } else if (usuario.role === "auxdatos") {
-        setVistaActual("Clientes")
-      } else if (usuario.role === "Asignador") {
+      // Redireccionamiento según el rol que devuelve el backend
+if (rolNormalizado === "super_admin" || rolNormalizado === "admin" || rolNormalizado === "jefe") {
+        setVistaActual("router");
+      } else if (rolNormalizado === "administrativo" || rolNormalizado === "inventario") {
+        setVistaActual("Inventario");
+      } else if (rolNormalizado === "auxdatos") {
+        setVistaActual("Clientes");
+      } else if (rolNormalizado === "asignador") {
         setVistaActual("AsignarServicios");
       } else {
-        setMensaje("El usuario no está registrado")
+        setMensaje(`Rol no reconocido en el sistema: ${usuario.rol}`);
       }
 
-
     } catch (error) {
-      setMensaje("Error al iniciar sesión");
-      console.error(error);
+      console.error("Error en autenticación:", error);
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        setMensaje("Correo o contraseña incorrectos");
+      } else {
+        setMensaje("Error al conectar con el servidor");
+      }
     }
-  };
+  }
 
   // Función para cerrar sesión y borrar el almacenamiento local
   const cerrarSesion = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     setVistaActual("login");
   };
 
-  //si la vista actual = anel jefe retorne panel jefe, para q se muestre xd
   if (vistaActual === "Inventario") {
-    return <Inventario />
+    return <Inventario />;
   }
   if (vistaActual === "Clientes") {
     return <GestionClientes alSalir={cerrarSesion} />;
   }
-
   if (vistaActual === "AsignarServicios") {
     return (
       <AsignarServicios
@@ -178,7 +172,6 @@ function App() {
           </nav>
 
         </div>
-
       </header>
 
       <div className="modal fade" id="loginModal" tabIndex="-1">
@@ -197,7 +190,6 @@ function App() {
                     onChange={(e) => setEmail(e.target.value)} />
                 </div>
 
-
                 <div className="mb-4">
                   <label htmlFor="password" className="form-label">Contraseña:</label>
                   <input type="password" className="form-control" id="password"
@@ -206,15 +198,12 @@ function App() {
                 </div>
                 <button type="submit" className="btn btn-login btn-ingresar w-100">Ingresar</button>
 
-
                 <div className="d-flex justify-content-between mt-3">
                   <a href="#" className="link-login">¿Olvidaste tu contraseña?</a>
                 </div>
               </form>
               {mensaje && <p className="text-danger text-center mt-2">{mensaje}</p>}
             </div>
-
-
           </div>
         </div>
       </div>
@@ -290,10 +279,8 @@ function App() {
         </section>
 
       </main>
-
     </>
   );
-
 }
 
 export default App;

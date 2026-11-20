@@ -476,6 +476,14 @@
       "trabajador": "trabajador 1",
       "fecha": "2019-11-18",
       "estado": "Asignado"
+    },
+    {
+      "id": 1795136533589,
+      "servicio": "cambio de aceite y filtro",
+      "descripcion": "cambio de aceite de motor y filtro de aceite ",
+      "trabajador": "trabajador 1",
+      "fecha": "2004-02-08",
+      "estado": "Pendiente"
     }
   ]
 }
