@@ -2,6 +2,7 @@ import 'react-router-dom';
 import logo from '../assets/logo.png';
 import '../App.css';
 
+
 function NavbarInventario({ setVistaActual }) {
   return (
     <aside className="sidebar offcanvas offcanvas-start show" tabIndex="-1" id="sidebarMenu">
