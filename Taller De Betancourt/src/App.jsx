@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import axios from 'axios';
-import bcrypt from 'bcryptjs';
 import Swal from 'sweetalert2';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -18,25 +17,26 @@ import logo from './assets/logo.png';
 import supra from './assets/supra.png';
 import './App.css';
 
-
 function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
 
   // Leemos si ya había una sesión iniciada guardada en el navegador al recargar 
-  const [vistaActual, setVistaActual] = useState(() => {
-    const rolGuardado = localStorage.getItem("userRole");
-    if (rolGuardado === "admin") return "router";
-    if (rolGuardado === "administrativo") return "Inventario";
+const [vistaActual, setVistaActual] = useState(() => {
+    const rolGuardado = localStorage.getItem("userRole")?.toLowerCase();
+    if (rolGuardado === "super_admin" || rolGuardado === "admin" || rolGuardado === "jefe") return "router";
+    if (rolGuardado === "administrativo" || rolGuardado === "inventario") return "Inventario";
     if (rolGuardado === "auxdatos") return "Clientes";
+    if (rolGuardado === "asignador") return "AsignarServicios";
     return "login";
   });
 
-  const API_URL = 'http://localhost:3000/users';
+  const API_URL = 'http://localhost:8080/api/v1/auth';
 
   async function login(e) {
     e.preventDefault();
+    setMensaje("");
 
     if (!email || !password) {
       setMensaje("Correo y contraseña obligatorios");
@@ -44,6 +44,7 @@ function App() {
     }
 
     try {
+<<<<<<< HEAD
       const respuesta = await axios.post('http://localhost:8080/api/auth/login', {
         correo: email,
         pass: password
@@ -53,11 +54,38 @@ function App() {
 
       Swal.fire(`¡Bienvenido/a ${datos.nombre}!`);
 
+=======
+      // 1. Petición POST al endpoint de login en Spring Boot (envía { correo, password })
+      const resLogin = await axios.post(`${API_URL}/login`, {
+        correo: email,
+        password: password
+      });
+
+      const { accessToken } = resLogin.data;
+
+      // Guardamos el token JWT en el navegador
+      localStorage.setItem("token", accessToken);
+
+      // 2. Petición GET al endpoint /me enviando el token Bearer para traer los datos y el rol
+      const resPerfil = await axios.get(`${API_URL}/me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      const usuario = resPerfil.data; // { idUsuario, nombre, apellido, correo, rol }
+      const rolNormalizado = usuario.rol.toLowerCase();
+
+      Swal.fire(`¡Bienvenido/a ${usuario.nombre} ${usuario.apellido}!`);
+
+      // Limpiamos el modal de Bootstrap
+>>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
       document.body.classList.remove('modal-open');
       document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
       document.body.style.overflow = 'unset';
       document.body.style.paddingRight = '';
 
+<<<<<<< HEAD
       localStorage.setItem("token", datos.token);
       localStorage.setItem("userRole", datos.role || "admin");
 
@@ -71,29 +99,54 @@ function App() {
 
     } catch (error) {
       if (error.response && error.response.status === 401) {
+=======
+      // Guardamos el rol en el almacenamiento local
+      localStorage.setItem("userRole", rolNormalizado);
+
+      // Redireccionamiento según el rol que devuelve el backend
+if (rolNormalizado === "super_admin" || rolNormalizado === "admin" || rolNormalizado === "jefe") {
+        setVistaActual("router");
+      } else if (rolNormalizado === "administrativo" || rolNormalizado === "inventario") {
+        setVistaActual("Inventario");
+      } else if (rolNormalizado === "auxdatos") {
+        setVistaActual("Clientes");
+      } else if (rolNormalizado === "asignador") {
+        setVistaActual("AsignarServicios");
+      } else {
+        setMensaje(`Rol no reconocido en el sistema: ${usuario.rol}`);
+      }
+
+    } catch (error) {
+      console.error("Error en autenticación:", error);
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+>>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
         setMensaje("Correo o contraseña incorrectos");
       } else {
         setMensaje("Error al conectar con el servidor");
       }
+<<<<<<< HEAD
       console.error(error);
     }
   }
 
+=======
+    }
+  }
+>>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
 
   // Función para cerrar sesión y borrar el almacenamiento local
   const cerrarSesion = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     setVistaActual("login");
   };
 
-  //si la vista actual = anel jefe retorne panel jefe, para q se muestre xd
   if (vistaActual === "Inventario") {
-    return <Inventario />
+    return <Inventario />;
   }
   if (vistaActual === "Clientes") {
     return <GestionClientes alSalir={cerrarSesion} />;
   }
-
   if (vistaActual === "AsignarServicios") {
     return (
       <AsignarServicios
@@ -154,7 +207,6 @@ function App() {
           </nav>
 
         </div>
-
       </header>
 
       <div className="modal fade" id="loginModal" tabIndex="-1">
@@ -173,7 +225,6 @@ function App() {
                     onChange={(e) => setEmail(e.target.value)} />
                 </div>
 
-
                 <div className="mb-4">
                   <label htmlFor="password" className="form-label">Contraseña:</label>
                   <input type="password" className="form-control" id="password"
@@ -182,15 +233,12 @@ function App() {
                 </div>
                 <button type="submit" className="btn btn-login btn-ingresar w-100">Ingresar</button>
 
-
                 <div className="d-flex justify-content-between mt-3">
                   <a href="#" className="link-login">¿Olvidaste tu contraseña?</a>
                 </div>
               </form>
               {mensaje && <p className="text-danger text-center mt-2">{mensaje}</p>}
             </div>
-
-
           </div>
         </div>
       </div>
@@ -266,10 +314,8 @@ function App() {
         </section>
 
       </main>
-
     </>
   );
-
 }
 
 export default App;
