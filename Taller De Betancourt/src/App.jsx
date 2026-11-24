@@ -44,95 +44,66 @@ const [vistaActual, setVistaActual] = useState(() => {
     }
 
     try {
-<<<<<<< HEAD
-      const respuesta = await axios.post('http://localhost:8080/api/auth/login', {
-        correo: email,
-        pass: password
-      });
-
-      const datos = respuesta.data;
-
-      Swal.fire(`¡Bienvenido/a ${datos.nombre}!`);
-
-=======
-      // 1. Petición POST al endpoint de login en Spring Boot (envía { correo, password })
       const resLogin = await axios.post(`${API_URL}/login`, {
         correo: email,
-        password: password
+        email,
+        password
       });
 
-      const { accessToken } = resLogin.data;
+      const token = resLogin.data.accessToken || resLogin.data.access_token;
+      if (!token) {
+        throw new Error("El servidor no devolvió un token de acceso");
+      }
 
-      // Guardamos el token JWT en el navegador
-      localStorage.setItem("token", accessToken);
+      localStorage.setItem("token", token);
 
-      // 2. Petición GET al endpoint /me enviando el token Bearer para traer los datos y el rol
       const resPerfil = await axios.get(`${API_URL}/me`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${token}`
         }
       });
 
-      const usuario = resPerfil.data; // { idUsuario, nombre, apellido, correo, rol }
-      const rolNormalizado = usuario.rol.toLowerCase();
+      const usuario = resPerfil.data;
+      const rol = usuario.role || usuario.rol;
+      const nombre = usuario.firstName || usuario.nombre || "";
+      const apellido = usuario.lastName || usuario.apellido || "";
 
-      Swal.fire(`¡Bienvenido/a ${usuario.nombre} ${usuario.apellido}!`);
+      if (!rol) {
+        throw new Error("El perfil no incluye un rol");
+      }
 
-      // Limpiamos el modal de Bootstrap
->>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
+      const rolNormalizado = rol.toLowerCase();
+
+      Swal.fire(`¡Bienvenido/a ${nombre} ${apellido}!`);
+
       document.body.classList.remove('modal-open');
       document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
       document.body.style.overflow = 'unset';
       document.body.style.paddingRight = '';
 
-<<<<<<< HEAD
-      localStorage.setItem("token", datos.token);
-      localStorage.setItem("userRole", datos.role || "admin");
-
-      if (datos.role === "administrativo") {
-        setVistaActual("Inventario");
-      } else if (datos.role === "auxdatos") {
-        setVistaActual("Clientes");
-      } else {
-        setVistaActual("router");
-      }
-
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-=======
-      // Guardamos el rol en el almacenamiento local
       localStorage.setItem("userRole", rolNormalizado);
 
-      // Redireccionamiento según el rol que devuelve el backend
-if (rolNormalizado === "super_admin" || rolNormalizado === "admin" || rolNormalizado === "jefe") {
+      if (rolNormalizado === "super_admin" || rolNormalizado === "admin" || rolNormalizado === "jefe") {
         setVistaActual("router");
       } else if (rolNormalizado === "administrativo" || rolNormalizado === "inventario") {
         setVistaActual("Inventario");
       } else if (rolNormalizado === "auxdatos") {
         setVistaActual("Clientes");
-      } else if (rolNormalizado === "asignador") {
+      } else if (rolNormalizado === "asignador" || rolNormalizado === "worker") {
         setVistaActual("AsignarServicios");
       } else {
-        setMensaje(`Rol no reconocido en el sistema: ${usuario.rol}`);
+        setMensaje(`Rol no reconocido en el sistema: ${rol}`);
       }
-
     } catch (error) {
       console.error("Error en autenticación:", error);
       if (error.response && (error.response.status === 401 || error.response.status === 403)) {
->>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
         setMensaje("Correo o contraseña incorrectos");
       } else {
         setMensaje("Error al conectar con el servidor");
       }
-<<<<<<< HEAD
-      console.error(error);
     }
   }
 
-=======
-    }
-  }
->>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
 
   // Función para cerrar sesión y borrar el almacenamiento local
   const cerrarSesion = () => {
