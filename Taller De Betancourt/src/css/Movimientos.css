@@ -1,0 +1,394 @@
+.mov-contenido {
+  background-color: #090710;
+  color: #f3f4f6;
+  min-height: 100vh;
+  padding: 20px 24px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mov-card {
+  background-color: #13111c;
+  border: 1px solid #5b21b6;
+  border-radius: 18px;
+  box-shadow: 0 0 12px rgba(109, 40, 217, 0.18);
+}
+
+/* KPIs */
+.mov-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.mov-kpi-card {
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mov-kpi-icon {
+  font-size: 1.7rem;
+  color: #9ca3af;
+}
+
+.mov-kpi-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.mov-kpi-label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Panel y filtros */
+.mov-panel {
+  padding: 20px 24px;
+}
+
+.mov-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mov-panel-header h1 {
+  margin: 0;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.mov-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.mov-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 155px;
+}
+
+.mov-field-grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+.mov-field label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.mov-field input,
+.mov-field select {
+  background-color: #0d0b14;
+  border: 1px solid #2e2942;
+  color: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.mov-field input:focus,
+.mov-field select:focus {
+  border-color: #7c3aed;
+}
+
+/* Botones */
+.mov-btn-primary {
+  background-color: #161424;
+  border: 1px solid #3b3556;
+  color: #ffffff;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mov-btn-primary:hover:not(:disabled) {
+  background-color: #5b21b6;
+  border-color: #7c3aed;
+}
+
+.mov-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mov-btn-secondary {
+  background-color: transparent;
+  border: 1px solid #3b3556;
+  color: #d1d5db;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.mov-btn-secondary:hover {
+  border-color: #7c3aed;
+  color: #ffffff;
+}
+
+/* Alertas */
+.mov-alert {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mov-alert button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.mov-alert-error {
+  background-color: rgba(220, 38, 38, 0.15);
+  border: 1px solid #dc2626;
+  color: #fca5a5;
+}
+
+.mov-alert-ok {
+  background-color: rgba(22, 163, 74, 0.15);
+  border: 1px solid #16a34a;
+  color: #86efac;
+}
+
+/* Tabla */
+.mov-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.mov-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.mov-table thead tr {
+  background-color: #1e2235;
+  color: #e5e7eb;
+}
+
+.mov-table th {
+  padding: 12px;
+  font-weight: 600;
+}
+
+.mov-table td {
+  padding: 12px;
+  border-bottom: 1px solid #262335;
+  color: #e5e7eb;
+}
+
+.mov-row-anulado td {
+  opacity: 0.6;
+}
+
+.mov-empty-row {
+  padding: 26px !important;
+  color: #9ca3af !important;
+}
+
+.mov-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.mov-badge-activo {
+  font-size: 15px;
+  color: #ffffff;
+}
+
+.mov-badge-anulado {
+  font-size: 15 px;
+  color: #ffffff;
+}
+
+.mov-type-tag {
+  font-weight: 600;
+}
+
+.mov-type-entrada {
+  font-size: 15px;
+}
+
+.mov-type-salida {
+  font-size: 15px;
+}
+
+.mov-type-ajuste {
+  color: #60a5fa;
+}
+
+.mov-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mov-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mov-btn-view {
+  background-color: #facc15;
+  color: #111827;
+}
+
+.mov-btn-pdf {
+  background-color: rgba(220, 38, 38, 0.15);
+  border-color: #dc2626;
+  color: #f87171;
+}
+
+.mov-btn-pdf:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.mov-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 6px;
+  font-size: 0.86rem;
+  color: #9ca3af;
+}
+
+.mov-pagination-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.mov-pagination-btns button {
+  background-color: #13111c;
+  border: 1px solid #3b3556;
+  color: #e5e7eb;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.mov-pagination-btns button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Modales */
+.mov-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(5, 4, 10, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.mov-modal {
+  width: 100%;
+  max-width: 560px;
+  padding: 22px;
+}
+
+.mov-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.mov-modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.mov-close-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.mov-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mov-detail-full {
+  grid-column: 1 / -1;
+}
+
+.mov-detail-label {
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+.mov-detail-grid p {
+  margin: 3px 0 0;
+  color: #ffffff;
+}
+
+.mov-modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.mov-summary-box {
+  background-color: #0d0b14;
+  border: 1px solid #2e2942;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.86rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mov-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}

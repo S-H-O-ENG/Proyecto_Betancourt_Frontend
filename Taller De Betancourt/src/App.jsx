@@ -12,6 +12,7 @@ import Pro_Facturas from './pages/Pro_Facturas';
 import Pro_Calificacion from './pages/Pro_Calificacion';
 import AsignarServicios from './pages/AsignarServicios.jsx';
 import Trabajador from './pages/trabajador.jsx';
+import Movimientos from './pages/Movimientos_Inventario.jsx';
 
 import logo from './assets/logo.png';
 import supra from './assets/supra.png';
@@ -21,6 +22,14 @@ function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
+
+
+  //se agrega el movimientos inventario 
+const [movimientos, setMovimientos] = useState([]);
+
+  const registrarMovimiento = (nuevoMovimiento) => {
+    setMovimientos((prev) => [nuevoMovimiento, ...prev]);
+  };
 
   // Leemos si ya había una sesión iniciada guardada en el navegador al recargar 
 const [vistaActual, setVistaActual] = useState(() => {
@@ -44,7 +53,6 @@ const [vistaActual, setVistaActual] = useState(() => {
     }
 
     try {
-<<<<<<< HEAD
       const respuesta = await axios.post('http://localhost:8080/api/auth/login', {
         correo: email,
         pass: password
@@ -54,38 +62,11 @@ const [vistaActual, setVistaActual] = useState(() => {
 
       Swal.fire(`¡Bienvenido/a ${datos.nombre}!`);
 
-=======
-      // 1. Petición POST al endpoint de login en Spring Boot (envía { correo, password })
-      const resLogin = await axios.post(`${API_URL}/login`, {
-        correo: email,
-        password: password
-      });
-
-      const { accessToken } = resLogin.data;
-
-      // Guardamos el token JWT en el navegador
-      localStorage.setItem("token", accessToken);
-
-      // 2. Petición GET al endpoint /me enviando el token Bearer para traer los datos y el rol
-      const resPerfil = await axios.get(`${API_URL}/me`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
-
-      const usuario = resPerfil.data; // { idUsuario, nombre, apellido, correo, rol }
-      const rolNormalizado = usuario.rol.toLowerCase();
-
-      Swal.fire(`¡Bienvenido/a ${usuario.nombre} ${usuario.apellido}!`);
-
-      // Limpiamos el modal de Bootstrap
->>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
       document.body.classList.remove('modal-open');
       document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
       document.body.style.overflow = 'unset';
       document.body.style.paddingRight = '';
 
-<<<<<<< HEAD
       localStorage.setItem("token", datos.token);
       localStorage.setItem("userRole", datos.role || "admin");
 
@@ -99,40 +80,14 @@ const [vistaActual, setVistaActual] = useState(() => {
 
     } catch (error) {
       if (error.response && error.response.status === 401) {
-=======
-      // Guardamos el rol en el almacenamiento local
-      localStorage.setItem("userRole", rolNormalizado);
-
-      // Redireccionamiento según el rol que devuelve el backend
-if (rolNormalizado === "super_admin" || rolNormalizado === "admin" || rolNormalizado === "jefe") {
-        setVistaActual("router");
-      } else if (rolNormalizado === "administrativo" || rolNormalizado === "inventario") {
-        setVistaActual("Inventario");
-      } else if (rolNormalizado === "auxdatos") {
-        setVistaActual("Clientes");
-      } else if (rolNormalizado === "asignador") {
-        setVistaActual("AsignarServicios");
-      } else {
-        setMensaje(`Rol no reconocido en el sistema: ${usuario.rol}`);
-      }
-
-    } catch (error) {
-      console.error("Error en autenticación:", error);
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
->>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
         setMensaje("Correo o contraseña incorrectos");
       } else {
         setMensaje("Error al conectar con el servidor");
       }
-<<<<<<< HEAD
       console.error(error);
     }
   }
 
-=======
-    }
-  }
->>>>>>> ad7447fd69f47042348efb22dd345b57261281d0
 
   // Función para cerrar sesión y borrar el almacenamiento local
   const cerrarSesion = () => {
@@ -141,9 +96,27 @@ if (rolNormalizado === "super_admin" || rolNormalizado === "admin" || rolNormali
     setVistaActual("login");
   };
 
-  if (vistaActual === "Inventario") {
-    return <Inventario />;
+if (vistaActual === "Inventario") {
+    return (
+      <Inventario
+        setVistaActual={setVistaActual}
+        onRegistrarMovimiento={registrarMovimiento}
+        alSalir={cerrarSesion}
+      />
+    );
   }
+
+//condicion para el inventario y sus movimientos 
+ if (vistaActual === "Movimientos") {
+    return (
+      <Movimientos
+        setVistaActual={setVistaActual}
+        movimientos={movimientos}
+        alSalir={cerrarSesion}
+      />
+    );
+  }
+
   if (vistaActual === "Clientes") {
     return <GestionClientes alSalir={cerrarSesion} />;
   }

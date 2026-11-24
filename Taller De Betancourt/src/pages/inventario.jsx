@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import logoImg from '../assets/logo.png';
 import '../css/Inventario.css';
 import NavbarInventario from '../components/NavbarInventario';
+import { construirMovimientoPorAccionProducto } from './Movimientos_Inventario';
 
 const API_URL = "http://localhost:3000/productos";
-
 
 const OPCIONES_REPUESTOS = [
   "Aceite Sintético 10W40",
@@ -20,7 +19,7 @@ const OPCIONES_REPUESTOS = [
   "Bujía de Iridio"
 ];
 
-function Inventario({ setVistaActual }) {
+function Inventario({ setVistaActual, onRegistrarMovimiento, alSalir }) {
   const [productos, setProductos] = useState([]);
   const [formData, setFormData] = useState({
     id: "",
@@ -73,6 +72,20 @@ function Inventario({ setVistaActual }) {
     try {
       await axios.post(API_URL, nuevoProducto);
       await consultarP();
+
+      // Registra el movimiento de entrada/ajuste por creación de producto
+      if (onRegistrarMovimiento) {
+        onRegistrarMovimiento(
+          construirMovimientoPorAccionProducto({
+            accion: "AGREGAR",
+            productoActual: {
+              ...nuevoProducto,
+              nombre: nuevoProducto.Lproducto
+            }
+          })
+        );
+      }
+
       setFormData({ id: "", Lproducto: "", cantidad: "" });
 
       const botonCerrar = document.querySelector("#modalProducto .btn-close");
@@ -94,6 +107,7 @@ function Inventario({ setVistaActual }) {
     e.preventDefault();
     const cantidadNum = parseInt(formData.cantidad, 10) || 0;
     const { estado, claseBadge } = obtenerEstadoYBadge(cantidadNum);
+    const productoAnterior = productos.find((p) => p.id === formData.id);
 
     const productoActualizado = {
       id: formData.id,
@@ -106,6 +120,23 @@ function Inventario({ setVistaActual }) {
     try {
       await axios.put(`${API_URL}/${formData.id}`, productoActualizado);
       await consultarP();
+
+      // Registra entrada, salida o ajuste según cambie la cantidad del producto
+      if (onRegistrarMovimiento) {
+        onRegistrarMovimiento(
+          construirMovimientoPorAccionProducto({
+            accion: "MODIFICAR",
+            productoActual: {
+              ...productoActualizado,
+              nombre: productoActualizado.Lproducto
+            },
+            productoAnterior: productoAnterior
+              ? { ...productoAnterior, nombre: productoAnterior.Lproducto }
+              : null
+          })
+        );
+      }
+
       setFormData({ id: "", Lproducto: "", cantidad: "" });
 
       const botonCerrar = document.querySelector("#modalModificar .btn-close");
@@ -119,7 +150,24 @@ function Inventario({ setVistaActual }) {
     if (window.confirm(`¿Desea eliminar este producto? ${producto.Lproducto}`)) {
       try {
         await axios.delete(`${API_URL}/${producto.id}`);
-        consultarP();
+        await consultarP();
+
+        // Registra movimiento al eliminar un producto del inventario
+        if (onRegistrarMovimiento) {
+          onRegistrarMovimiento(
+            construirMovimientoPorAccionProducto({
+              accion: "BORRAR",
+              productoActual: {
+                ...producto,
+                nombre: producto.Lproducto
+              },
+              productoAnterior: {
+                ...producto,
+                nombre: producto.Lproducto
+              }
+            })
+          );
+        }
       } catch (error) {
         console.error("Error al eliminar:", error);
         alert("Ocurrió un error al eliminar.");
@@ -134,7 +182,11 @@ function Inventario({ setVistaActual }) {
   return (
     <>
       <div className="d-flex">
-        <NavbarInventario setVistaActual={setVistaActual} />
+        <NavbarInventario
+          setVistaActual={setVistaActual}
+          vistaActiva="Inventario"
+          alSalir={alSalir}
+        />
 
         <div className="dashboard-layout">
           <main className="dashboard-main">
@@ -185,9 +237,9 @@ function Inventario({ setVistaActual }) {
                 <div>
                   <span>Productos</span>
                 </div>
-                <button 
-                  className="btn btn-inventario" 
-                  data-bs-toggle="modal" 
+                <button
+                  className="btn btn-inventario"
+                  data-bs-toggle="modal"
                   data-bs-target="#modalProducto"
                   onClick={() => setFormData({ id: "", Lproducto: "", cantidad: "" })}
                 >
@@ -217,15 +269,18 @@ function Inventario({ setVistaActual }) {
                         </span>
                       </td>
                       <td>
-                        <button 
+                        <button
                           className="btn btn-sm btn-warning me-2"
-                          data-bs-toggle="modal" 
+                          data-bs-toggle="modal"
                           data-bs-target="#modalModificar"
                           onClick={() => prepararModificacion(prod)}
                         >
                           <i className="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button className="btn btn-sm btn-outline-danger me-2" onClick={() => eliminarProducto(prod)}>
+                        <button
+                          className="btn btn-sm btn-outline-danger me-2"
+                          onClick={() => eliminarProducto(prod)}
+                        >
                           <i className="fa-solid fa-trash"></i>
                         </button>
                       </td>
@@ -238,7 +293,7 @@ function Inventario({ setVistaActual }) {
         </div>
       </div>
 
-      {}
+      {/* Modal Nuevo Producto */}
       <div className="modal fade" id="modalProducto" tabIndex="-1" aria-labelledby="modalProductoLabel" aria-hidden="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content modal-login text-bg-dark border-secondary">
@@ -251,11 +306,11 @@ function Inventario({ setVistaActual }) {
             <div className="modal-body">
               <form id="formProducto" onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <select 
-                    name="Lproducto" 
-                    className="form-select bg-dark text-white border-secondary" 
-                    required 
-                    value={formData.Lproducto} 
+                  <select
+                    name="Lproducto"
+                    className="form-select bg-dark text-white border-secondary"
+                    required
+                    value={formData.Lproducto}
                     onChange={handleChange}
                   >
                     <option value="" disabled hidden>Seleccione una opción</option>
@@ -289,7 +344,7 @@ function Inventario({ setVistaActual }) {
         </div>
       </div>
 
-      {}
+      {/* Modal Modificar Producto */}
       <div className="modal fade" id="modalModificar" tabIndex="-1" aria-labelledby="modalModificarLabel" aria-hidden="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content modal-login text-bg-dark border-secondary">

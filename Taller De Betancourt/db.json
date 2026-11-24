@@ -36,6 +36,13 @@
       "cantidad": 21,
       "estado": "Activo",
       "claseBadge": "bg-success"
+    },
+    {
+      "id": "1795479291082",
+      "Lproducto": "Filtro de Aire",
+      "cantidad": 6,
+      "estado": "Activo",
+      "claseBadge": "bg-success"
     }
   ],
   "pedidos": [
