@@ -1,8 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import '../App.css';
+import { useState } from 'react';
+import Pedidos from '../pages/Pedidos';
 
 function NavbarJefe() {
+
+
+
     return (
         <header className="header-principal navbar navbar-expand-lg">
             <div className="container-fluid container-header">
@@ -19,7 +24,7 @@ function NavbarJefe() {
 
                 <nav className="collapse navbar-collapse navegar" id="navbarNav">
                     <ul className="navbar-nav ms-auto align-items-center">
-                        <li className="nav-item">
+                        <li className="nav-item" >
                             <NavLink className='nav-link' to='/Inicio'>Inicio</NavLink>
                         </li>
                         <li className="nav-item">
@@ -37,9 +42,9 @@ function NavbarJefe() {
 
                         <li className="nav-item ms-2">
                             <button className="btn btn-login-nav" onClick={() => {
-                                localStorage.removeItem("token");    // 1. Borra el token JWT
-                                localStorage.removeItem("userRole"); // 2. Borra la sesión guardada
-                                window.location.href = "/";          // 3. Te manda de regreso al inicio/login
+                                sessionStorage.removeItem("token");   
+                                sessionStorage.removeItem("role"); 
+                                window.location.href = "/";         
                             }}>
                                 Cerrar Sesión
                             </button>

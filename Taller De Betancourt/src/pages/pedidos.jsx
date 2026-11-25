@@ -6,7 +6,7 @@ import '../css/Pedidos.css';
 
 
 function Pedidos() {    
-    const API_URL = 'http://localhost:3000/pedidos';
+    const API_URL = 'http://localhost:8080/api/Pedidos';
     const API_URL_PRO = 'http://localhost:3000/productos';
 
     const [carga, setCarga] = useState(false); //esta es una constante que se usa para evitar que se dupliquen lo datos al enviarlos a la bd,json (esto es una variable boolenao, por eso el estado inicial es falso)

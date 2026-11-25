@@ -10,7 +10,7 @@ import Pedidos from './Pedidos';
 import '../css/InicioJefe.css'
 
 function InicioJefe() {
-    const API_URL = 'http://localhost:3000/pedidos';
+
     const [datos, setDatos] = useState([]);
 
     //funcion simple para consultar
