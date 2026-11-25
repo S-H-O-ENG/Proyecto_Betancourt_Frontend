@@ -246,10 +246,9 @@ footer {
 }
 
 .modal-login{
-    background-image: url('./assets/log.jpg');
     background-position: center;
     background-size: cover;
-    color: white;
+    color: rgb(143, 1, 238);
 }
 
 
@@ -258,14 +257,21 @@ footer {
 }
 
 .modal-login button{
-    background-color: #ff005577;
+    background-color: #8c00ff77;
 }
 
 .link-login{
-    color: #FF007F;
+    color: #ffffff;
 }
 
 .btn-enviarS{
     background-color: #5f1ed7;
     color: #F1EAFF;
+}
+
+.btn-cerrar{
+    background-color: #5f1ed7 !important;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 20px;
 }

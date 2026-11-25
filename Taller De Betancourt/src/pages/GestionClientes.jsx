@@ -218,10 +218,16 @@ function GestionClientes({ alSalir }) {
                         <i className="fa-regular fa-user"></i>
                         <span>Gestion Clientes</span>
                     </a>
-                    <a href="#salir" onClick={(e) => { e.preventDefault(); if (alSalir) alSalir(); }}>
-                        <i className="fa-solid fa-arrow-right-from-bracket"></i>
-                        <span>Salir</span>
-                    </a>
+                   <button 
+          className="btn btn-login-nav" 
+          onClick={() => {
+            localStorage.removeItem("token");    // 1. Borra el token JWT
+            localStorage.removeItem("role"); // 2. Borra el rol de la sesión
+            window.location.href = "/";          // 3. Redirige al inicio/login
+          }}
+        >
+          <i className="fa-solid fa-right-from-bracket"></i> Salir
+        </button>
                 </nav>
             </aside>
 

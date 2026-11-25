@@ -246,8 +246,7 @@ footer {
 }
 
 .modal-login{
-    background-image: url(../img/log.jpg);
-    color: #F1EAFF;
+    color: #550ee2;
 }
 
 .modal-login ::placeholder{

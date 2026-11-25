@@ -23,7 +23,7 @@ function NavbarInventario({ setVistaActual }) {
           className="btn btn-login-nav" 
           onClick={() => {
             localStorage.removeItem("token");    // 1. Borra el token JWT
-            localStorage.removeItem("userRole"); // 2. Borra el rol de la sesión
+            localStorage.removeItem("role"); // 2. Borra el rol de la sesión
             window.location.href = "/";          // 3. Redirige al inicio/login
           }}
         >

@@ -1,166 +1,96 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
-import Inventario from './pages/Inventario.jsx';
-import GestionClientes from './pages/GestionClientes.jsx';
 import InicioJefe from './pages/InicioJefe.jsx';
 import Pedidos from './pages/Pedidos.jsx';
 import Proveedores from './pages/Proveedores.jsx';
-import Pro_Facturas from './pages/Pro_Facturas';
-import Pro_Calificacion from './pages/Pro_Calificacion';
-import AsignarServicios from './pages/AsignarServicios.jsx';
-import Trabajador from './pages/trabajador.jsx';
+import Inventario from './pages/Inventario.jsx';
+import GestionClientes from './pages/GestionClientes.jsx';
+
+import ProteccionPaginas from './components/RutasProtegidas.jsx';
+
+
 
 import logo from './assets/logo.png';
 import supra from './assets/supra.png';
 import './App.css';
 
-function App() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [mensaje, setMensaje] = useState("");
+const LOGIN_URL = 'http://localhost:8080/api/auth/login';
 
-  // Leemos si ya había una sesión iniciada guardada en el navegador al recargar 
-const [vistaActual, setVistaActual] = useState(() => {
-    const rolGuardado = localStorage.getItem("userRole")?.toLowerCase();
-    if (rolGuardado === "super_admin" || rolGuardado === "admin" || rolGuardado === "jefe") return "router";
-    if (rolGuardado === "administrativo" || rolGuardado === "inventario") return "Inventario";
-    if (rolGuardado === "auxdatos") return "Clientes";
-    if (rolGuardado === "asignador") return "AsignarServicios";
-    return "login";
-  });
+// Ruta de inicio según el rol que devuelve el backend
+const RUTA_POR_ROL = {
+  SUPER_ADMIN: '/Inicio',
+  admin: '/Inicio',
+  ADMINISTRATIVO: '/Inventario',
+  AUXILIAR: '/GestionClientes',
+};
 
-  const API_URL = 'http://localhost:8080/api/v1/auth';
+function Landing() {
+  const navigate = useNavigate();
+  const [mensaje, setMensaje] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   async function login(e) {
     e.preventDefault();
-    setMensaje("");
+    setMensaje('');
 
     if (!email || !password) {
-      setMensaje("Correo y contraseña obligatorios");
+      setMensaje('Correo y contraseña obligatorios');
       return;
     }
 
     try {
-      const resLogin = await axios.post(`${API_URL}/login`, {
-        correo: email,
-        email,
-        password
-      });
+      const { data } = await axios.post(LOGIN_URL, { correo: email, password });
 
-      const token = resLogin.data.accessToken || resLogin.data.access_token;
-      if (!token) {
-        throw new Error("El servidor no devolvió un token de acceso");
+      const destino = RUTA_POR_ROL[data.role];
+      if (!destino) {
+        console.warn('Rol no reconocido:', data.role);
+        setMensaje('Tu rol no tiene acceso configurado');
+        return;
       }
 
-      localStorage.setItem("token", token);
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('role', data.role);
 
-      const resPerfil = await axios.get(`${API_URL}/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const usuario = resPerfil.data;
-      const rol = usuario.role || usuario.rol;
-      const nombre = usuario.firstName || usuario.nombre || "";
-      const apellido = usuario.lastName || usuario.apellido || "";
-
-      if (!rol) {
-        throw new Error("El perfil no incluye un rol");
-      }
-
-      const rolNormalizado = rol.toLowerCase();
-
-      Swal.fire(`¡Bienvenido/a ${nombre} ${apellido}!`);
-
+      // Limpia el modal de Bootstrap antes de navegar
       document.body.classList.remove('modal-open');
-      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+      document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
       document.body.style.overflow = 'unset';
       document.body.style.paddingRight = '';
 
-      localStorage.setItem("userRole", rolNormalizado);
-
-      if (rolNormalizado === "super_admin" || rolNormalizado === "admin" || rolNormalizado === "jefe") {
-        setVistaActual("router");
-      } else if (rolNormalizado === "administrativo" || rolNormalizado === "inventario") {
-        setVistaActual("Inventario");
-      } else if (rolNormalizado === "auxdatos") {
-        setVistaActual("Clientes");
-      } else if (rolNormalizado === "asignador" || rolNormalizado === "worker") {
-        setVistaActual("AsignarServicios");
-      } else {
-        setMensaje(`Rol no reconocido en el sistema: ${rol}`);
-      }
+      Swal.fire(`¡Bienvenido/a ${data.nombre}!`);
+      navigate(destino);
     } catch (error) {
-      console.error("Error en autenticación:", error);
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        setMensaje("Correo o contraseña incorrectos");
+      if (error.response?.status === 401) {
+        setMensaje('Correo o contraseña incorrectos');
       } else {
-        setMensaje("Error al conectar con el servidor");
+        setMensaje('Error al conectar con el servidor');
       }
+      console.error(error);
     }
-  }
-
-
-  // Función para cerrar sesión y borrar el almacenamiento local
-  const cerrarSesion = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    setVistaActual("login");
-  };
-
-  if (vistaActual === "Inventario") {
-    return <Inventario />;
-  }
-  if (vistaActual === "Clientes") {
-    return <GestionClientes alSalir={cerrarSesion} />;
-  }
-  if (vistaActual === "AsignarServicios") {
-    return (
-      <AsignarServicios
-        onNavigate={(vista) => setVistaActual(vista === "home" ? "login" : vista)}
-      />
-    );
-  }
-  if (vistaActual === "Trabajador") {
-    return (
-      <Trabajador
-        onNavigate={(vista) => setVistaActual(vista === "home" ? "login" : vista)}
-      />
-    );
-  }
-
-  if (vistaActual === "router") {
-    return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/Inicio" />} />
-          <Route path="/Inicio" element={<InicioJefe />} />
-          <Route path="/Pedidos" element={<Pedidos />} />
-          <Route path="/ProveedoresGestion" element={<Proveedores />} />
-          <Route path="/Facturas" element={<Pro_Facturas />} />
-          <Route path="/Calificaciones" element={<Pro_Calificacion />} />
-        </Routes>
-      </BrowserRouter>
-    );
   }
 
   return (
     <>
       <header className="header-principal navbar navbar-expand-lg">
         <div className="container-fluid container-header">
-
           <div className="logo-marca-wrapper d-flex align-items-center">
             <img src={logo} alt="Logo Taller" className="logo-header me-2" />
             <h1 className="marca m-0">TALLER DE BETANCOURT</h1>
           </div>
 
-          <button className="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
-            aria-label="Toggle navigation">
+          <button
+            className="navbar-toggler custom-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
             <span className="navbar-toggler-icon"></span>
           </button>
 
@@ -169,14 +99,13 @@ const [vistaActual, setVistaActual] = useState(() => {
               <li className="nav-item"><a className="nav-link" href="#Nosotros">Sobre Nosotros</a></li>
               <li className="nav-item"><a className="nav-link" href="#donde">Encuéntranos</a></li>
               <li className="nav-item"><a className="nav-link btn-cita-nav" href="#agendacita">Agenda tu Cita</a></li>
-
               <li className="nav-item">
-                <button className="btn btn-login-nav" data-bs-toggle="modal" data-bs-target="#loginModal">Login
+                <button className="btn btn-login-nav" data-bs-toggle="modal" data-bs-target="#loginModal">
+                  Login
                 </button>
               </li>
             </ul>
           </nav>
-
         </div>
       </header>
 
@@ -185,22 +114,36 @@ const [vistaActual, setVistaActual] = useState(() => {
           <div className="modal-content modal-login">
             <div className="modal-header border-0">
               <h2 className="modal-title w-100 text-center">Iniciar Sesión</h2>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+              <button type="button" className="btn-cerrar" data-bs-dismiss="modal">X</button>
             </div>
             <div className="modal-body">
-              <form onSubmit={login} action="">
+              <form onSubmit={login}>
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label">Correo Electrónico:</label>
-                  <input type="email" className="form-control" id="email" placeholder="Ingresa tu correo"
-                    required value={email}
-                    onChange={(e) => setEmail(e.target.value)} />
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    placeholder="Ingresa tu correo"
+                    autoComplete="username"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
 
                 <div className="mb-4">
                   <label htmlFor="password" className="form-label">Contraseña:</label>
-                  <input type="password" className="form-control" id="password"
-                    placeholder="Ingresa tu contraseña" required value={password}
-                    onChange={(e) => setPassword(e.target.value)} />
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    placeholder="Ingresa tu contraseña"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
                 <button type="submit" className="btn btn-login btn-ingresar w-100">Ingresar</button>
 
@@ -221,71 +164,102 @@ const [vistaActual, setVistaActual] = useState(() => {
       </section>
 
       <main className="container my-5 contenido-principal">
-
-        <section className="seccion-contenedor p-4 mb-5 text-center" id="Nosotros"
-          style={{ background: "rgba(24, 24, 31, 0.6)", borderRadius: "8px" }}>
-
+        <section
+          className="seccion-contenedor p-4 mb-5 text-center"
+          id="Nosotros"
+          style={{ background: 'rgba(24, 24, 31, 0.6)', borderRadius: '8px' }}
+        >
           <h2>¿Quiénes somos?</h2>
-          <p className="mx-auto mt-3 text-secondary"
-            style={{ maxWidth: "800px", fontFamily: "'Lato', sans-serif", lineHeight: "1.6" }}>
+          <p
+            className="mx-auto mt-3 text-secondary"
+            style={{ maxWidth: '800px', fontFamily: "'Lato', sans-serif", lineHeight: '1.6' }}
+          >
             Somos un taller automotriz comprometido con la excelencia mecánica. Contamos con tecnología de
             vanguardia y un equipo de técnicos altamente calificados para ofrecerte soluciones confiables y seguras.
           </p>
         </section>
 
-        <section className="seccion-contenedor p-4 mb-5 text-center" id="donde"
-          style={{ background: "rgba(24, 24, 31, 0.6)", borderRadius: "8px" }}>
+        <section
+          className="seccion-contenedor p-4 mb-5 text-center"
+          id="donde"
+          style={{ background: 'rgba(24, 24, 31, 0.6)', borderRadius: '8px' }}
+        >
           <h2 className="mb-4">Encuéntranos</h2>
-          <div className="ratio ratio-21x9 mx-auto" style={{ maxWidth: "1000px", borderRadius: "8px", overflow: "hidden" }}>
+          <div
+            className="ratio ratio-21x9 mx-auto"
+            style={{ maxWidth: '1000px', borderRadius: '8px', overflow: 'hidden' }}
+          >
+            {/* Reemplaza este src por el enlace "Insertar mapa" de Google Maps; el actual tiene caracteres dañados */}
             <iframe
+              title="Ubicación del taller"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.974443187212!2d-74.093416!3d4.60001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNC淡MzYnMDAuMCJOIDc0wrA1NSczNi4zIlc!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco"
-              style={{ border: "0" }}
+              style={{ border: '0' }}
               loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade">
-            </iframe>
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
         </section>
-
-        <section className="seccion-contenedor p-4 mb-5" id="agendacita"
-          style={{ background: "rgba(24, 24, 31, 0.6)", borderRadius: "8px" }}>
-          <h2 className="text-center mb-4">Agenda tu Cita</h2>
-
-          <div className="cita">
-            <form action="#" method="POST" className="mx-auto" style={{ maxWidth: "600px" }}>
-              <div className="mb-3">
-                <label htmlFor="nombreCita" className="form-label text-secondary">Nombre Completo:</label>
-                <input type="text" id="nombreCita" className="form-control bg-dark text-white border-secondary"
-                  placeholder="Ingrese su nombre" required />
-              </div>
-
-              <div className="row mb-3">
-                <div className="col-md-6 mb-3 mb-md-0">
-                  <label htmlFor="telefonoCita" className="form-label text-secondary">Teléfono de Contacto:</label>
-                  <input type="tel" id="telefonoCita" className="form-control bg-dark text-white border-secondary"
-                    placeholder="Ingrese numero telefonico" required />
-                </div>
-                <div className="col-md-6">
-                  <label htmlFor="fechaCita" className="form-label text-secondary">Fecha Solicitada:</label>
-                  <input type="date" id="fechaCita" className="form-control bg-dark text-white border-secondary"
-                    required />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label htmlFor="motivoCita" className="form-label text-secondary">Motivo del Servicio / Falla del Vehículo:</label>
-                <textarea id="motivoCita" className="form-control text-white border-secondary" rows="4"
-                  placeholder="Ej: Cambio de aceite, ruido en la suspensión..." required></textarea>
-              </div>
-
-              <div className="text-center">
-                <button type="button" onClick={() => setVistaActual("Trabajador")} className="btn px-5 py-2 border-0 btn-enviarS">Enviar Solicitud</button>
-              </div>
-            </form>
-          </div>
-        </section>
-
       </main>
     </>
+  );
+}
+
+  
+
+function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('RUTA:', location.pathname);
+  }, [location]);
+
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+
+      <Route
+        path="/Inicio"
+        element={
+          <ProteccionPaginas rolesPermitidos={['SUPER_ADMIN', 'admin']}>
+            <InicioJefe />
+          </ProteccionPaginas>
+        }
+      />
+      <Route
+        path="/Pedidos"
+        element={
+          <ProteccionPaginas rolesPermitidos={['SUPER_ADMIN', 'admin']}>
+            <Pedidos />
+          </ProteccionPaginas>
+        }
+      />
+      <Route
+        path="/ProveedoresGestion"
+        element={
+          <ProteccionPaginas rolesPermitidos={['SUPER_ADMIN', 'admin']}>
+            <Proveedores />
+          </ProteccionPaginas>
+        }
+      />
+      <Route
+        path="/Inventario"
+        element={
+          <ProteccionPaginas rolesPermitidos={['ADMINISTRATIVO']}>
+            <Inventario />
+          </ProteccionPaginas>
+        }
+      />
+      <Route
+        path="/GestionClientes"
+        element={
+          <ProteccionPaginas rolesPermitidos={['AUXILIAR']}>
+            <GestionClientes />
+          </ProteccionPaginas>
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
