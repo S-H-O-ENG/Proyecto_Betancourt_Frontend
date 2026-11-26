@@ -71,6 +71,9 @@ function Landing() {
       }
       console.error(error);
     }
+
+
+
   }
 
   return (
@@ -98,7 +101,6 @@ function Landing() {
             <ul className="navbar-nav ms-auto align-items-center">
               <li className="nav-item"><a className="nav-link" href="#Nosotros">Sobre Nosotros</a></li>
               <li className="nav-item"><a className="nav-link" href="#donde">Encuéntranos</a></li>
-              <li className="nav-item"><a className="nav-link btn-cita-nav" href="#agendacita">Agenda tu Cita</a></li>
               <li className="nav-item">
                 <button className="btn btn-login-nav" data-bs-toggle="modal" data-bs-target="#loginModal">
                   Login
@@ -189,7 +191,6 @@ function Landing() {
             className="ratio ratio-21x9 mx-auto"
             style={{ maxWidth: '1000px', borderRadius: '8px', overflow: 'hidden' }}
           >
-            {/* Reemplaza este src por el enlace "Insertar mapa" de Google Maps; el actual tiene caracteres dañados */}
             <iframe
               title="Ubicación del taller"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.974443187212!2d-74.093416!3d4.60001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNC淡MzYnMDAuMCJOIDc0wrA1NSczNi4zIlc!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco"
@@ -204,7 +205,7 @@ function Landing() {
   );
 }
 
-  
+
 
 function App() {
   const location = useLocation();
