@@ -5,13 +5,11 @@ import NavbarJefe from '../components/NavbarJefe';
 import '../css/Pedidos.css';
 
 
-function Pedidos() {    
-    const API_URL = 'http://localhost:8080/api/Pedidos';
-    const API_URL_PRO = 'http://localhost:3000/productos';
+function Pedidos() {
+    const API_URL = 'http://localhost:8080/api/pedidos';
 
     const [carga, setCarga] = useState(false); //esta es una constante que se usa para evitar que se dupliquen lo datos al enviarlos a la bd,json (esto es una variable boolenao, por eso el estado inicial es falso)
 
-    const [rangeValue, setRangeValue] = useState(50);
 
     //como usar use state, como hacer crud funcinal, etc
     //creamos una constante que se va a encargar e almacenar ls datos para luegon pasarlos al db.json
@@ -22,7 +20,7 @@ function Pedidos() {
         rol: '',
         proveedor: '',
         repuesto: '',
-        cantidad: '',
+        cantidad: 1,
         importancia: '',
         metodopago: '',
         estado: 'Pendiente'
@@ -33,82 +31,156 @@ function Pedidos() {
 
     //funcion que se usa para enviar los datos anteriores a la constante
     //(e) dice que la funcion recibe un evento
-    function actualizardatos(e){
-        //aqui llamamos a setdatos para copiar todo el conetnido de esa constante a esa constante, por eso el setdatos, pq estamos modificando esa constante
-        //el ... antes de datos es un operador que copia todo el contenido que ya tenia la constante, para evitar que se pierdan datos
-        //e.target.name captura el atributo name de el html, ese atributo es el que disparo el cambio
-        //e.target.value captura el texto que el usuario escribio o selecciono
-        setDatos({
+
+    //aqui llamamos a setdatos para copiar todo el conetnido de esa constante a esa constante, por eso el setdatos, pq estamos modificando esa constante
+    //el ... antes de datos es un operador que copia todo el contenido que ya tenia la constante, para evitar que se pierdan datos
+    //e.target.name captura el atributo name de el html, ese atributo es el que disparo el cambio
+    //e.target.value captura el texto que el usuario escribio o selecciono
+    function actualizardatos(e) {
+        const { name, value } = e.target;
+
+        setDatos((prev) => ({
+            ...prev,
+            [name]: name === 'cantidad' ? Number(value) : value
+        }));
+    }
+
+
+    // async = indica que la función es asíncrona porque la petición HTTP hacia la API en Spring Boot tarda un momento en responder
+    // esta función se encarga de armar los datos del pedido, enviarlos por POST y mostrar el resultado al usuario; recibe el evento (e) del formulario
+    async function enviardatos(e) {
+        e.preventDefault(); // evita que el navegador recargue la página al enviar el formulario y se pierda el estado
+
+        // primera barrera de seguridad contra doble clic o envíos repetidos:
+        // si 'carga' ya está en true, significa que hay una petición en curso y detenemos la función con return
+        if (carga) return;
+
+        // marcamos 'carga' en true para bloquear nuevos envíos mientras se procesa este pedido
+        setCarga(true);
+
+        // recuperamos el token JWT guardado en sessionStorage al iniciar sesión
+        const token = sessionStorage.getItem('token');
+
+        // preparamos el objeto que se enviará al backend:
+        // aseguramos que 'cantidad' viaje como número (y no como texto) y que 'estado' nazca en 'Pendiente'
+        const payload = {
             ...datos,
-            [e.target.name]: e.target.value
-        });
-    }
+            cantidad: Number(datos.cantidad),
+            estado: 'Pendiente'
+        };
 
+        // usamos try / catch / finally para manejar respuestas exitosas, errores de red/servidor y liberar 'carga' siempre
+        try {
+            // axios.post(url, cuerpo, configuracion) envía el JSON a /api/pedidos junto con el header Authorization: Bearer <token>
+            // 'await' espera la respuesta del servidor y 'respuesta' guarda el status, headers y datos devueltos por el backend
+            const respuesta = await axios.post(API_URL, payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
 
-     //async = indica que la funcion es asincroniza pq las conecciones entre una pagina y la bd tardan
-     //esta funcion va a ser la encargada de enviar los datos de la constante a la bd.json, tambien recibe un evento, por eso el (e)
-    async function enviardatos(e){
-        e.preventDefault(); //es una funcion que evita que la pagina se recargue o se pierdan datos
+            // si el servidor respondió bien (por ejemplo 201 Created), mostramos la alerta de éxito
+            Swal.fire('Pedido Creado Con Exito');
 
-        //la primera barrera de segurida
-        //entonces cmo definimos carrgando como falsa si el usuario hace un doble click o se detecta un segundo envio antes de que la funcion halla terminado su recorrido lo que pasa es esto;
-        //en el primer envio que es el correcto como la condicion es falsa la funcion simplemente continnua y define el carga cmo verdadero, entonces ai justo aqui se hace otro envio sin que el primero halla terminado, como la funcion ahora si es verdadera pq ya se habia definifo el carga entrue el va a hacer un return, y la funcion se va a detener
-        // y abajo del todo volvemos a definir carga como falso para que se puefan seguir haciendo pedidos
-
-        
-        //aqui usamos axios entonces, primero un try para verificar si hay o no errores, para que la funcion registre errores basicamente
-        //axios.post(api, datos) = aqui es como hacer un post en postman xd, osea vamos a registrar datos y le estamos pasando primero la url de la bd, y segundo los campos que va a registar, que son los de la primera constante y pues si es correcto le sacamos la alerta
-        //cons respuesta = await ... = esto sirve para que axios al enviar el pedido no nos de solo lo que guaradmos si no mas datos de la coneccion con el servidor utiles, por ejemplo, el status headers etc
-
-
-        try{
-            const respuesta = await axios.post(API_URL, datos);
-            Swal.fire(`Pedido Creado Con Exito`);
-        }catch (error){
-            Swal.fire(`No Se Ha Podido Crear El Pedido`);
+            // limpiamos el formulario dejando 'cantidad' en 1 y 'estado' en 'Pendiente' para el siguiente pedido
+            setDatos({
+                nombre: '',
+                apellido: '',
+                rol: '',
+                proveedor: '',
+                repuesto: '',
+                cantidad: 1,
+                importancia: '',
+                metodopago: '',
+                estado: 'Pendiente'
+            });
+        } catch (error) {
+            // si ocurre algún error (token inválido/vencido, fallo de red o error del backend), mostramos la alerta de fallo
+            Swal.fire('No Se Ha Podido Crear El Pedido');
+            console.log('Token leído:', token);
+            console.error('Error POST pedidos:', error.response?.status, error.response?.data, error.message);
+        } finally {
+            // 'finally' se ejecuta siempre (haya salido bien o mal) para devolver 'carga' a false y permitir futuros envíos
+            setCarga(false);
         }
-        
     }
-    
+
     return (
         <>
             <NavbarJefe />
             <div className="container">
 
-                
+
                 {/*aqui agregamos on submit al formulario para que permita que todo lo que se haga aca sea enviado a la funcion designada*/}
 
                 <form className="formulario" onSubmit={enviardatos}>
 
                     <div className="input-group">
                         <span className="input-group-text">Nombres y apellidos</span>
-                        <input type="text" aria-label="First name" className="form-control" name='nombre' value={datos.nombre} onChange={actualizardatos} required/>
-                        <input type="text" aria-label="Last name" className="form-control" name='apellido' value={datos.apellido} onChange={actualizardatos} required/>
+                        <input
+                            type="text"
+                            aria-label="First name"
+                            className="form-control"
+                            name="nombre"
+                            value={datos.nombre}
+                            onChange={actualizardatos}
+                            required
+                        />
+                        <input
+                            type="text"
+                            aria-label="Last name"
+                            className="form-control"
+                            name="apellido"
+                            value={datos.apellido}
+                            onChange={actualizardatos}
+                            required
+                        />
                     </div>
 
                     <div className="rol">
-                        <label htmlFor="">Seleccione su rol en el taller</label>
-                        <select className="form-select" name='rol' aria-label="Default select example" value={datos.rol} onChange={actualizardatos} required>
-                            <option selected>Seleccione una opcion</option>
-                            <option >Jefe del taller</option>
+                        <label htmlFor="rol">Seleccione su rol en el taller</label>
+                        <select
+                            id="rol"
+                            className="form-select"
+                            name="rol"
+                            value={datos.rol}
+                            onChange={actualizardatos}
+                            required
+                        >
+                            <option value="">Seleccione una opcion</option>
+                            <option value="Jefe del taller">Jefe del taller</option>
                         </select>
                     </div>
 
                     <div className="proveedor">
-                        <label htmlFor="">Seleccione un proveedor </label>
-                        <select className="form-select" name='proveedor' aria-label="Default select example" value={datos.proveedor} onChange={actualizardatos} required>
-                            <option selected>Seleccione una opcion</option>
-                            <option >Proveedor 1</option>
-                            <option >Proveedor 2</option>
-                            <option >Proveedor 3</option>
+                        <label htmlFor="proveedor">Seleccione un proveedor</label>
+                        <select
+                            id="proveedor"
+                            className="form-select"
+                            name="proveedor"
+                            value={datos.proveedor}
+                            onChange={actualizardatos}
+                            required
+                        >
+                            <option value="">Seleccione una opcion</option>
+                            <option value="Proveedor 1">Proveedor 1</option>
+                            <option value="Proveedor 2">Proveedor 2</option>
+                            <option value="Proveedor 3">Proveedor 3</option>
                         </select>
                     </div>
 
                     <div className="pagom">
-                        <label htmlFor="">Repuesto Requerido</label>
-                        <select name="repuesto" className='form-select' required value={datos.repuesto} onChange={actualizardatos} >
+                        <label htmlFor="repuesto">Repuesto Requerido</label>
+                        <select
+                            id="repuesto"
+                            name="repuesto"
+                            className="form-select"
+                            value={datos.repuesto}
+                            onChange={actualizardatos}
+                            required
+                        >
                             <option value="">Seleccione una opcion</option>
-                            <option value="1">Aceite Sintético 10W40"</option>
+                            <option value="1">Aceite Sintético 10W40</option>
                             <option value="2">Filtro de Aceite</option>
                             <option value="3">Filtro de Aire</option>
                             <option value="4">Pastillas de Freno Delanteras</option>
@@ -119,51 +191,85 @@ function Pedidos() {
                             <option value="9">Liquido Refrigerante</option>
                             <option value="10">Bujía de Iridio</option>
                         </select>
-                        
                     </div>
 
-
-                    <label htmlFor="range4" className="form-label">Cantidad de repuestos requerida:  <strong>{datos.cantidad}</strong></label>
-                    <input type="range" name='cantidad' className="form-range" min="0" max="100" value={datos.cantidad} id="range4" onChange={actualizardatos} required/>
-
+                    <label htmlFor="range4" className="form-label">
+                        Cantidad de repuestos requerida: <strong>{datos.cantidad}</strong>
+                    </label>
+                    <input
+                        type="range"
+                        name="cantidad"
+                        className="form-range"
+                        min="1"
+                        max="100"
+                        value={datos.cantidad}
+                        id="range4"
+                        onChange={actualizardatos}
+                        required
+                    />
 
                     <div className="importancia">
-                        <label htmlFor="">Seleccione la importancia del pedido</label> <br />
+                        <label>Seleccione la importancia del pedido</label> <br />
                         <div className="form-check form-check-inline">
-                            <input className="form-check-input" type="radio" name="importancia" id="alta"
-                                value='alta' checked={datos.importancia === 'alta'}onChange={actualizardatos} required/>
-                            <label className="form-check-label" htmlFor="inlineRadio1">Alta</label>
+                            <input
+                                className="form-check-input"
+                                type="radio"
+                                name="importancia"
+                                id="alta"
+                                value="alta"
+                                checked={datos.importancia === 'alta'}
+                                onChange={actualizardatos}
+                                required
+                            />
+                            <label className="form-check-label" htmlFor="alta">Alta</label>
                         </div>
                         <div className="form-check form-check-inline">
-                            <input className="form-check-input" type="radio" name="importancia" id="media"
-                                value='media' checked={datos.importancia === 'media'} onChange={actualizardatos} required/>
-                            <label className="form-check-label" htmlFor="inlineRadio2">Media</label>
+                            <input
+                                className="form-check-input"
+                                type="radio"
+                                name="importancia"
+                                id="media"
+                                value="media"
+                                checked={datos.importancia === 'media'}
+                                onChange={actualizardatos}
+                                required
+                            />
+                            <label className="form-check-label" htmlFor="media">Media</label>
                         </div>
                         <div className="form-check form-check-inline">
-                            <input className="form-check-input" type="radio" name="importancia" id="baja"
-                                value='baja' checked={datos.importancia === 'baja'} onChange={actualizardatos} required/>
-                            <label className="form-check-label" htmlFor="inlineRadio2">Baja</label>
+                            <input
+                                className="form-check-input"
+                                type="radio"
+                                name="importancia"
+                                id="baja"
+                                value="baja"
+                                checked={datos.importancia === 'baja'}
+                                onChange={actualizardatos}
+                                required
+                            />
+                            <label className="form-check-label" htmlFor="baja">Baja</label>
                         </div>
                     </div>
 
                     <div className="pagom">
-                        <label htmlFor="">Seleccione un metodo de pago</label>
-                        <select className="form-select" name='metodopago' aria-label="Default select example" value={datos.metodopago} onChange={actualizardatos} required>
-                            <option selected>Seleccione una opcion</option>
+                        <label htmlFor="metodopago">Seleccione un metodo de pago</label>
+                        <select
+                            id="metodopago"
+                            className="form-select"
+                            name="metodopago"
+                            value={datos.metodopago}
+                            onChange={actualizardatos}
+                            required
+                        >
+                            <option value="">Seleccione una opcion</option>
                             <option value="transferencia">Transferencia</option>
                             <option value="efectivo">Efectivo</option>
                         </select>
                     </div>
 
-                    {/*en todos loa campos anteriores se agegaron
-                    value.datos... lo que hace es vincular ese campo de la constante con el input o la linea donde se halla puesto, para eso TODOS LOS INPUT O LABEL ETC, DEBEN DE TENER UN ATRIBUTO NAME CON EL MISMO NOMBRE QUE EL CAMPO DE LA CONSTANTE, OSEA si es datos.metodopago, el form debe tener name='metodopago'
-                    onchange(actualizardatos) = aqui es una funncion que dice que cuando detecte cualquier cambio llame a la funcion que va entre las {}, este y el de arriba trabajan juntos 
-                    */}
-
-
-
-                    {/*aqui se le pone tipo submit al boton pq anteriomente en la funcion y la variable quedamos en que recibian un evento, y el submit es un evento, entonces gracias a este boton todo el formulario lo escucha y llama a la funcinn que le asignamos osea enviardatos, pero ES IMPORANTE PQ ESTO SOLO FUNCIONA SIEMPRE Y CUANDO TDO ESTE DENTRO DE UNA ETIQUETA FORM, no sirve en divs ni main ni nada*/}
-                    <button type="submit" className="btn-enviar">Solicitar Pedido</button>
+                    <button type="submit" className="btn-enviar" disabled={carga}>
+                        {carga ? 'Enviando...' : 'Solicitar Pedido'}
+                    </button>
                 </form>
 
             </div>
