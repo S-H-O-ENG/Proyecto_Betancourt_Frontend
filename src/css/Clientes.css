@@ -43,8 +43,8 @@ body {
 }
 
 .sidebar.offcanvas:hover {
-    width: 270px;
-    padding: 30px 30px;
+    width: 320px !important;
+    padding: 25px 18px !important;
 }
 
 .sidebar.offcanvas:not(:hover) .sidebar-logo h2,
@@ -64,16 +64,17 @@ body {
 
 .sidebar-logo h2 {
     color: var(--gris-texto);
-    font-size: 38px;
+    font-size: 24px;
     font-weight: 700;
     margin-top: 10px;
     margin-bottom: 5px;
+    line-height: 1.15;
     transition: opacity 0.2s ease-in-out;
 }
 
 .sidebar-logo p {
     color: var(--blanco-suave);
-    font-size: 16px;
+    font-size: 13px;
     transition: opacity 0.2s ease-in-out;
 }
 
@@ -86,11 +87,12 @@ body {
 .sidebar-menu a {
     text-decoration: none;
     color: var(--blanco-suave);
-    padding: 14px 28px;
+    padding: 12px 14px !important;
     border-radius: 15px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px !important;
+    font-size: 14px !important;
     font-weight: 700;
     transition: .3s;
     white-space: nowrap;
@@ -100,6 +102,7 @@ body {
     width: 24px;
     text-align: center;
     flex-shrink: 0;
+    font-size: 15px !important;
 }
 
 .sidebar-menu a:hover,
@@ -117,7 +120,7 @@ body {
 }
 
 .sidebar.offcanvas:hover~.dashboard-main {
-    padding-left: 295px;
+    padding-left: 340px;
 }
 
 .topbar {
@@ -139,13 +142,13 @@ body {
 
 .inventario-info {
     color: var(--blanco-suave);
-    font-size: 34px;
+    font-size: 24px;
 }
 
 .inventario-info span {
     color: var(--blanco-suave);
     font-weight: 700;
-    font-size: 24px;
+    font-size: 20px;
     margin-left: 10px;
 }
 
@@ -258,6 +261,7 @@ body {
         padding-left: 25px;
     }
 }
+
 .dashboard-layout .sidebar.offcanvas {
     width: 75px !important;
     background-color: #14141a !important;
@@ -273,6 +277,67 @@ body {
 }
 
 .dashboard-layout .sidebar.offcanvas:hover {
-    width: 270px !important;
-    padding: 25px 20px !important;
+    width: 320px !important;
+    padding: 25px 18px !important;
+}
+
+.sidebar-menu .btn-cerrar-sesion {
+    margin-top: 8px;
+    width: 100%;
+    padding: 11px 14px !important;
+    border: 1px solid rgba(191, 160, 255, 0.25);
+    border-radius: 15px;
+    background-color: rgba(95, 30, 215, 0.22);
+    color: var(--blanco-suave);
+    font-size: 14px !important;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.sidebar-menu .btn-cerrar-sesion i {
+    font-size: 15px !important;
+    flex-shrink: 0;
+}
+
+.sidebar-menu .btn-cerrar-sesion span {
+    transition: opacity 0.2s ease;
+}
+.dashboard-layout .sidebar.offcanvas .sidebar-menu a,
+.dashboard-layout .sidebar.offcanvas .sidebar-menu a span,
+.dashboard-layout .sidebar.offcanvas .sidebar-menu .btn-cerrar-sesion,
+.dashboard-layout .sidebar.offcanvas .sidebar-menu .btn-cerrar-sesion span {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    letter-spacing: normal !important;
+}
+
+.dashboard-layout .sidebar.offcanvas:not(:hover) .sidebar-menu .btn-cerrar-sesion span,
+.dashboard-layout .sidebar.offcanvas:not(:hover) .sidebar-menu a span {
+    display: none !important;
+}
+
+.dashboard-layout .sidebar.offcanvas:not(:hover) .sidebar-menu a,
+.dashboard-layout .sidebar.offcanvas:not(:hover) .sidebar-menu .btn-cerrar-sesion {
+    justify-content: center;
+    padding: 12px 10px !important;
+}
+
+.sidebar-menu .btn-cerrar-sesion:hover {
+    background-color: var(--morado-principal);
+    border-color: #bfa0ff;
+    color: #ffffff;
+}
+
+.swal2-popup .swal2-icon.swal2-custom-icon {
+    border: none !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 1.25em auto 0.6em !important;
+    transform: none !important;
 }
