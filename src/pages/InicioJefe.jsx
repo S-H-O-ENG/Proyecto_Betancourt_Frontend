@@ -1,50 +1,67 @@
 import { useState, useEffect } from 'react';
-//usestate = sirve para que las variables que creemos obliguen a a la pagina a actualizarse apenas noten un cambio
-//useeffect permite crear acciones automaticas en determinqados momentos de la pagina
+// useState: guarda el arreglo de pedidos y re-renderiza la tabla cuando cambia
+// useEffect: ejecuta la carga inicial de pedidos una sola vez al montar el componente
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
 import NavbarJefe from '../components/NavbarJefe';
-import Pedidos from './Pedidos';
+import '../css/InicioJefe.css';
 
-import '../css/InicioJefe.css'
+const API_URL = 'http://localhost:8080/api/pedidos';
 
 function InicioJefe() {
-
+    // Arreglo vacío inicialmente para que React renderice la estructura sin fallar antes de que llegue la respuesta del backend
     const [datos, setDatos] = useState([]);
 
-    //funcion simple para consultar
-    async function consultar() {
-        //pq como arreglo vacio y no con los mismo datos de peidos por ejemplo: se hace para que cuando la pagina se cargue por primera vez react no falle al intentar cargar la lista
-
-        try {
-            const rta = await axios.get(API_URL);
-            setDatos(rta.data);
-        } catch {
-            Swal.fire(`Error al obtener registros`);
-        }
-
+    // Obtiene el token desde sessionStorage limpiando posibles comillas o espacios extra
+    function obtenerToken() {
+        const rawToken = sessionStorage.getItem('token');
+        return rawToken ? rawToken.replace(/^"|"$/g, '').trim() : '';
     }
 
+    // Función para consultar todos los pedidos guardados en PostgreSQL
+    async function consultar() {
+        const token = obtenerToken();
+
+        try {
+            const rta = await axios.get(API_URL, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setDatos(Array.isArray(rta.data) ? rta.data : []);
+        } catch (error) {
+            console.error('Error al obtener pedidos:', error.response?.status || error.message);
+            Swal.fire('Error al obtener registros');
+        }
+    }
+
+    // Se ejecuta una sola vez al entrar a la vista de Inicio
     useEffect(() => {
         consultar();
     }, []);
-    //parentesis azules son los del useeffect, los amarillos son los de la funcion, => es una funcion en conjunto con () amarillos, en este caso es una funcion anonima por eso no hay nombre, no hay parametros nada
-    //[] arreglo vacio sirve para indicar que la funcion se debe ejecutar una sola vez
 
-    //funcion para actualizar el estado
+    // Función para actualizar el estado ('Recibido' o 'Cancelado') de un pedido
     const cambiarestado = async (id, nuevoestado) => {
+        const token = obtenerToken(sessionStorage.getItem('token'));
+
         try {
-            //aqui utilizamos patch pq solo vamos a cambiar un objeto, en este caso el estado
-            await axios.patch(`${API_URL}/${id}`, { estado: nuevoestado });
-            //aqui se vuelve a llamar a la funcion consultar para que actualice los datos apenas note el cambio
+            await axios.patch(
+                `${API_URL}/${id}/estado`,
+                { estado: nuevoestado },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
             consultar();
         } catch (error) {
-            Swal.fire(`Error al actualizar`);
+            console.error('Error al actualizar estado:', error.response?.status || error.message);
+            Swal.fire('Error al actualizar');
         }
-    }
+    };
 
-  
     const obtenerClaseEstado = (estado) => {
         if (estado === 'Recibido') return 'badge-estado badge-recibido';
         if (estado === 'Cancelado') return 'badge-estado badge-cancelado';
@@ -53,7 +70,6 @@ function InicioJefe() {
 
     return (
         <>
-
             <NavbarJefe />
 
             <div className="contenido container-fluid py-4">
@@ -70,39 +86,42 @@ function InicioJefe() {
                         <div className="col-3 text-center">Estado</div>
                     </div>
 
-                    {/* datos.map es un metodo de js que sirve para transformar un arreglo [] en otra cosa
-                    pedido es simplemente el nombre que le dimos a este metodo, puede ser cualquera
-                    */}
-                    {
-                        datos.map(
-                            (pedido) => (
-                                <div className="row align-items-center fila-pedido py-2" key={pedido.id}>
-                                    <div className="col-1 text-center fw-bold opacity-75">{pedido.id}</div>
-                                    <div className="col-3 text-truncate">{pedido.repuesto}</div>
-                                    <div className="col-2 text-truncate">{pedido.proveedor}</div>
-                                    <div className="col-1 text-center">{pedido.cantidad}</div>
-                                    <div className="col-2 text-center text-capitalize">{pedido.importancia}</div>
+                    {datos.map((pedido, index) => {
+                        const pedidoId = pedido.idpedido ?? pedido.id ?? index + 1;
 
-                                    <div className="col-3 d-flex align-items-center justify-content-center gap-2">
+                        return (
+                            <div className="row align-items-center fila-pedido py-2" key={pedidoId}>
+                                <div className="col-1 text-center fw-bold opacity-75">{pedidoId}</div>
+                                <div className="col-3 text-truncate">{pedido.repuesto}</div>
+                                <div className="col-2 text-truncate">{pedido.proveedor}</div>
+                                <div className="col-1 text-center">{pedido.cantidad}</div>
+                                <div className="col-2 text-center text-capitalize">{pedido.importancia}</div>
 
-                                        <span className={obtenerClaseEstado(pedido.estado)}>{pedido.estado}</span>
-                                    
+                                <div className="col-3 d-flex align-items-center justify-content-center gap-2">
+                                    <span className={obtenerClaseEstado(pedido.estado)}>{pedido.estado}</span>
 
-                                        <button className='btn btn-outline-success btn-micro' onClick={() => cambiarestado(pedido.id, 'Recibido')} disabled={pedido.estado === 'Cancelado' || pedido.estado === 'Recibido'}>Recibido</button>
-                                        <button className='btn btn-outline-danger btn-micro' onClick={() => cambiarestado(pedido.id, 'Cancelado')} disabled={pedido.estado === 'Recibido' || pedido.estado === 'Cancelado'}>Cancelar</button>
-                                    </div>
+                                    <button
+                                        className="btn btn-outline-success btn-micro"
+                                        onClick={() => cambiarestado(pedidoId, 'Recibido')}
+                                        disabled={pedido.estado === 'Cancelado' || pedido.estado === 'Recibido'}
+                                    >
+                                        Recibido
+                                    </button>
+                                    <button
+                                        className="btn btn-outline-danger btn-micro"
+                                        onClick={() => cambiarestado(pedidoId, 'Cancelado')}
+                                        disabled={pedido.estado === 'Recibido' || pedido.estado === 'Cancelado'}
+                                    >
+                                        Cancelar
+                                    </button>
                                 </div>
-                            )
-                        )
-
-                    }
-
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
-
-
         </>
-    )
+    );
 }
 
 export default InicioJefe;
