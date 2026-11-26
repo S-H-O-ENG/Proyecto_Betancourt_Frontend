@@ -1,9 +1,15 @@
-import 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import '../App.css';
-
+import { CerrarSesion } from '../utils/CerrarSesion.js';
 
 function NavbarInventario({ setVistaActual }) {
+  const navigate = useNavigate();
+
+  function logout() {
+    CerrarSesion();
+    navigate('/', { replace: true });
+  }
+
   return (
     <aside className="sidebar offcanvas offcanvas-start show" tabIndex="-1" id="sidebarMenu">
       <div className="sidebar-logo">
@@ -12,22 +18,15 @@ function NavbarInventario({ setVistaActual }) {
         <p>Gestión De Inventarios</p>
       </div>
       <nav className="sidebar-menu">
-        <button 
-          onClick={() => setVistaActual && setVistaActual('Inventario')} 
+        <button
+          onClick={() => setVistaActual && setVistaActual('Inventario')}
           className="btn text-start text-white w-100"
         >
           <i className="fa-solid fa-boxes-stacked"></i> Inventario
         </button>
 
-        <button 
-          className="btn btn-login-nav" 
-          onClick={() => {
-            localStorage.removeItem("token");    // 1. Borra el token JWT
-            localStorage.removeItem("role"); // 2. Borra el rol de la sesión
-            window.location.href = "/";          // 3. Redirige al inicio/login
-          }}
-        >
-          <i className="fa-solid fa-right-from-bracket"></i> Salir
+        <button className="btn btn-login-nav" onClick={logout}>
+          Cerrar Sesion
         </button>
       </nav>
     </aside>
