@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@300;400;700&display=swap");
 :root {
     --oscuro-fondo: #0f0f12;
     --morado-principal: #5f1ed7;
@@ -64,10 +65,9 @@ body {
     font-family: var(--fuente-titulos);
     font-size: 36px;
     letter-spacing: 2px;
-    color: var(--blanco-suave);
     background: linear-gradient(to right, #ffffff, var(--morado-clarito));
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-text-fill-color: transparent !important;
 }
 
 .navegar .navbar-nav {
@@ -187,7 +187,7 @@ body {
 }
 
 .carro-animado{
-    max-width: 420px;
+    max-width: 537px;
     height: auto;
     object-fit: contain;
     animation: moverAuto 2.0s ease-in-out infinite alternate;
@@ -246,23 +246,32 @@ footer {
 }
 
 .modal-login{
-    background-image: url(../img/log.jpg);
-    color: #F1EAFF;
+    background-position: center;
+    background-size: cover;
+    color: rgb(143, 1, 238);
 }
+
 
 .modal-login ::placeholder{
     color: rgba(255, 255, 255, 0.4);
 }
 
 .modal-login button{
-    background-color: #ff005577;
+    background-color: #8c00ff77;
 }
 
 .link-login{
-    color: #FF007F;
+    color: #ffffff;
 }
 
 .btn-enviarS{
     background-color: #5f1ed7;
     color: #F1EAFF;
+}
+
+.btn-cerrar{
+    background-color: #5f1ed7 !important;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 20px;
 }

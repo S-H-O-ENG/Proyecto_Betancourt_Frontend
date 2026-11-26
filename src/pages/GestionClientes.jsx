@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import logoImg from '../assets/logo.png';
 import supraImg from '../assets/supra.png';
+import { useNavigate } from 'react-router-dom';
 import '../css/Clientes.css';
-
+import { CerrarSesion } from '../utils/CerrarSesion.js';
 const API_CLIENTES = "http://localhost:3000/clientes";
 const API_VEHICULOS = "http://localhost:3000/vehiculos";
 
@@ -22,11 +23,14 @@ const EstadoInicialForm = {
 };
 
 function GestionClientes({ alSalir }) {
+    
     const [clientes, setClientes] = useState([]);
     const [vehiculos, setVehiculos] = useState([]);
     const [formData, setFormData] = useState(EstadoInicialForm);
     const [mostrarModal, setMostrarModal] = useState(false);
     const [clienteExistenteBloqueado, setClienteExistenteBloqueado] = useState(null);
+    const navigate = useNavigate();
+
 
     // Cargar clientes y vehículos desde db.json
     const obtenerDatos = async () => {
@@ -47,11 +51,11 @@ function GestionClientes({ alSalir }) {
 
     const handleChange = (e) => {
         const { id, value } = e.target;
-        
+
         // Al escribir la cédula en un nuevo registro, validamos si ya existe el cliente
         if (id === 'cedula' && formData.id === null) {
             setFormData(prev => ({ ...prev, [id]: value }));
-            
+
             if (value.trim() !== '') {
                 const encontrado = clientes.find(c => c.cedula === value);
 
@@ -188,7 +192,7 @@ function GestionClientes({ alSalir }) {
             try {
                 // Borramos el vehículo de su tabla
                 await axios.delete(`${API_VEHICULOS}/${vehiculo.id}`);
-                
+
                 // Opcional: verificar si el cliente se quedó sin vehículos para decidir si eliminarlo también
                 const vehiculosRestantes = vehiculos.filter(v => v.clienteId === cliente.id && v.id !== vehiculo.id);
                 if (vehiculosRestantes.length === 0) {
@@ -202,6 +206,10 @@ function GestionClientes({ alSalir }) {
             }
         }
     };
+    function logout() {
+        CerrarSesion();
+        navigate('/', { replace: true });
+    }
 
     return (
         <div className="dashboard-layout">
@@ -218,10 +226,9 @@ function GestionClientes({ alSalir }) {
                         <i className="fa-regular fa-user"></i>
                         <span>Gestion Clientes</span>
                     </a>
-                    <a href="#salir" onClick={(e) => { e.preventDefault(); if (alSalir) alSalir(); }}>
-                        <i className="fa-solid fa-arrow-right-from-bracket"></i>
-                        <span>Salir</span>
-                    </a>
+                    <button type='button' className="btn btn-login-nav" onClick={logout}>
+                        Cerrar Sesion
+                    </button>
                 </nav>
             </aside>
 
@@ -351,61 +358,61 @@ function GestionClientes({ alSalir }) {
 
                                                     {clienteExistenteBloqueado && (
                                                         <div className="alert alert-info py-2 small mb-3">
-                                                            <i className="fa-solid fa-circle-info me-1"></i> 
+                                                            <i className="fa-solid fa-circle-info me-1"></i>
                                                             Cliente existente detectado. Sus datos seran autocompletados. Solo se registrará el nuevo vehículo.
                                                         </div>
                                                     )}
 
                                                     <div className="mb-3">
                                                         <label className="form-label text-white-50">Nombre:</label>
-                                                        <input 
-                                                            type="text" 
-                                                            id="nombre" 
-                                                            className="form-control" 
-                                                            placeholder="Nombres" 
-                                                            value={formData.nombre} 
-                                                            onChange={handleChange} 
+                                                        <input
+                                                            type="text"
+                                                            id="nombre"
+                                                            className="form-control"
+                                                            placeholder="Nombres"
+                                                            value={formData.nombre}
+                                                            onChange={handleChange}
                                                             disabled={clienteExistenteBloqueado !== null}
-                                                            required 
+                                                            required
                                                         />
                                                     </div>
                                                     <div className="mb-3">
                                                         <label className="form-label text-white-50">Apellido:</label>
-                                                        <input 
-                                                            type="text" 
-                                                            id="apellido" 
-                                                            className="form-control" 
-                                                            placeholder="Apellidos" 
-                                                            value={formData.apellido} 
-                                                            onChange={handleChange} 
+                                                        <input
+                                                            type="text"
+                                                            id="apellido"
+                                                            className="form-control"
+                                                            placeholder="Apellidos"
+                                                            value={formData.apellido}
+                                                            onChange={handleChange}
                                                             disabled={clienteExistenteBloqueado !== null}
-                                                            required 
+                                                            required
                                                         />
                                                     </div>
                                                     <div className="mb-3">
                                                         <label className="form-label text-white-50">Teléfono:</label>
-                                                        <input 
-                                                            type="tel" 
-                                                            id="telefono" 
-                                                            className="form-control" 
-                                                            placeholder="Número de celular" 
-                                                            value={formData.telefono} 
-                                                            onChange={handleChange} 
+                                                        <input
+                                                            type="tel"
+                                                            id="telefono"
+                                                            className="form-control"
+                                                            placeholder="Número de celular"
+                                                            value={formData.telefono}
+                                                            onChange={handleChange}
                                                             disabled={clienteExistenteBloqueado !== null}
-                                                            required 
+                                                            required
                                                         />
                                                     </div>
                                                     <div className="mb-3">
                                                         <label className="form-label text-white-50">Correo Electrónico:</label>
-                                                        <input 
-                                                            type="email" 
-                                                            id="correo" 
-                                                            className="form-control" 
-                                                            placeholder="correo@ejemplo.com" 
-                                                            value={formData.correo} 
-                                                            onChange={handleChange} 
+                                                        <input
+                                                            type="email"
+                                                            id="correo"
+                                                            className="form-control"
+                                                            placeholder="correo@ejemplo.com"
+                                                            value={formData.correo}
+                                                            onChange={handleChange}
                                                             disabled={clienteExistenteBloqueado !== null}
-                                                            required 
+                                                            required
                                                         />
                                                     </div>
                                                 </div>

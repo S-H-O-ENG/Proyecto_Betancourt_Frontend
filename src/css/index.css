@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@300;400;700&display=swap");
 :root {
     --oscuro-fondo: #0f0f12;
     --morado-principal: #5f1ed7;
@@ -65,9 +64,10 @@ body {
     font-family: var(--fuente-titulos);
     font-size: 36px;
     letter-spacing: 2px;
+    color: var(--blanco-suave);
     background: linear-gradient(to right, #ffffff, var(--morado-clarito));
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent !important;
+    -webkit-text-fill-color: transparent;
 }
 
 .navegar .navbar-nav {
@@ -187,7 +187,7 @@ body {
 }
 
 .carro-animado{
-    max-width: 537px;
+    max-width: 420px;
     height: auto;
     object-fit: contain;
     animation: moverAuto 2.0s ease-in-out infinite alternate;
@@ -246,12 +246,8 @@ footer {
 }
 
 .modal-login{
-    background-image: url('./assets/log.jpg');
-    background-position: center;
-    background-size: cover;
-    color: white;
+    color: #550ee2;
 }
-
 
 .modal-login ::placeholder{
     color: rgba(255, 255, 255, 0.4);
