@@ -6,7 +6,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import InicioJefe from './pages/InicioJefe.jsx';
 import Pedidos from './pages/Pedidos.jsx';
 import Proveedores from './pages/Proveedores.jsx';
-import Inventario from './pages/Inventario.jsx';
+import Inventario from './pages/inventario.jsx';
 import GestionClientes from './pages/GestionClientes.jsx';
 
 import ProteccionPaginas from './components/RutasProtegidas.jsx';
